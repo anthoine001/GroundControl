@@ -1,4 +1,4 @@
-from curses.textpad import rectangle
+
 from math import cos
 
 from kivy.app import App
