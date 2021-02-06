@@ -1,6 +1,32 @@
 MainWidget:
 
 <MainWidget>:
+    GridLayout:
+        cols: 3
+        ControleTir:
+        Graphique2:
+        Graphique2:
+        Graphique2:
+        Graphique2:
+        Graphique2:
+
+<ControleTir>:
+    cols: 2
+    orientation: "vertical"
     Label:
-        text:"Test"
-        pos: dp(0), dp(300)
+        text: root.heure
+    Button:
+        pos: 0, 0
+        text: "Mise a feu"
+        size_hint: None, None
+        height: 30
+        pos_hint: {"y" : 1}
+        on_press: root.on_button_click()
+    BoxLayout:
+        orientation: "vertical"
+        Label:
+            text: "Depuis le decollage:"
+        Label:
+            text: root.since_launch
+
+
