@@ -21,8 +21,7 @@ class Capteur:
         self.nom = nom
         self.data = .0
         self.coef = coef
-        # self.data = .0
-        Clock.schedule_interval(self.capteur_update, .1)
+        Clock.schedule_interval(self.capteur_update, FREQ)
 
     def capteur_update(self, dt):
         if self.nom == "Altitude":
@@ -79,42 +78,42 @@ class Graphique2(RelativeLayout):
         self.y_mid = self.H / 2
         self.capteur = capteur
         print(type(capteur))
-        self.label_titre = Label(text=self.titre, color=(1, 0.5, 0), text_size=(self.width, self.height),
+        self.label_titre = Label(text=self.titre,
+                                 color=(1, 0.5, 0),
+                                 text_size=(self.width, self.height),
                                  size_hint=(1, 2),
                                  padding_y=0)
         self.add_widget(self.label_titre)
         Clock.schedule_interval(self.update, FREQ)
         self.temps = 0
+        pas = int(300/10*FREQ)
+        # pas = 3
+        max_graph = int(10/FREQ)
+        # max_graph = 90
         if self.capteur.nom == "Altitude":
-            for i in range(0, 300):
-                self.graphX.append(i)
+            for i in range(0, max_graph):
+                self.graphX.append(pas*i)
                 self.graphY.append(0)
         else:
-            for i in range(0, 300):
-                self.graphX.append(i)
+            for i in range(0, max_graph):
+                self.graphX.append(pas*i)
+                # pas*i = 89*3 =
                 self.graphY.append(self.y_mid)
 
     def update(self, dt):
         self.temps += FREQ
         self.canvas.clear()
         # Dessin du cadre
-        """TEST"""
-        mylabel = CoreLabel(text="Hi there!", font_size=25, color=(0, 0, 0, 1))
-        # Force refresh to compute things and generate the texture
-        mylabel.refresh()
-        # Get the texture and the texture size
-        texture = mylabel.texture
-        texture_size = list(texture.size)
-        # Draw the texture on any widget canvas
-        self.canvas.add(Rectangle(texture=texture, size=texture_size))
-        """FIN DE TEST"""
         with self.canvas:
             Color(1, 1, 1)
             Line(rectangle=(0, 0, self.L, self.H), width=2)
         self.remove_widget(self.label_titre)
         self.add_widget(self.label_titre)
+        self.chart_unit()
         # Trace la courbe
-        for i in range(0, 299):
+        pas = int(300/10*FREQ)
+        max_graph = int(10 / FREQ)
+        for i in range(0, max_graph-1):
             x1 = self.graphX[i]
             y1 = self.graphY[i]
             x2 = self.graphX[i + 1]
@@ -124,10 +123,26 @@ class Graphique2(RelativeLayout):
                 Line(points=(x1, y1, x2, y2))
         # mise à jour des points avec intégration de la nouvelle valeur
         # à la fin
-        for i in range(0, 299):
+        for i in range(0, max_graph-1):
             self.graphY[i] = self.graphY[i + 1]
         # Mise à jour de de la valeur du capteur
-        self.graphY[299] = self.capteur.data
+        self.graphY[max_graph-1] = self.capteur.data
+
+    def chart_unit(self):
+        self.g = []
+        for i in range(0,10):
+            mylabel = CoreLabel(text=str(i-9), font_size=15, color=(1, 1, 1, 1))
+            # Force refresh to compute things and generate the texture
+            mylabel.refresh()
+            # Get the texture and the texture size
+            texture = mylabel.texture
+            texture_size = list(texture.size)
+            self.g.append(Rectangle(pos=(17+i*30, 100), texture=texture, size=texture_size))
+            with self.canvas:
+                Line(points=(30+i*30, 100, 30+i*30, 105))
+            # Draw the texture on any widget canvas
+            self.canvas.add(self.g[i])
+
 
 
 class MainWidget(BoxLayout):
