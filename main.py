@@ -1,11 +1,10 @@
 from datetime import *
 from random import random
-
+from kivy.core.text import Label as CoreLabel
 from kivy.config import Config
 from kivy.app import App
 from kivy.graphics.context_instructions import Color
-from kivy.graphics.vertex_instructions import Line
-from kivy.metrics import dp
+from kivy.graphics.vertex_instructions import Line, Rectangle
 from kivy.properties import Clock, StringProperty, BooleanProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
@@ -18,7 +17,7 @@ FREQ = .1
 class Capteur:
     """Classe de dévelopement de l'application
     A remplacer plus tard par l'acquisition des signaux réels du port série"""
-    def __init__(self, nom="", coef = 1):
+    def __init__(self, nom="", coef=1.):
         self.nom = nom
         self.data = .0
         self.coef = coef
@@ -26,8 +25,12 @@ class Capteur:
         Clock.schedule_interval(self.capteur_update, .1)
 
     def capteur_update(self, dt):
-        self.data = self.coef * (random() * 200 - 50)
+        if self.nom == "Altitude":
+            self.data = self.data + random() * 2
+        else:
+            self.data = self.coef * (random() * 200 - 50) + 50
         # print(self.nom + " : " + str(self.data))
+
 
 # ---- Capteurs de test ------
 vitesse = Capteur("vitesse", 0.3)
@@ -39,6 +42,7 @@ gps_lat = Capteur("GPS_lat", 1)
 gps_long = Capteur("GPS_long", 1)
 vide = Capteur("vide", 0)
 # ---- Capteurs de test ------
+
 
 class ControleTir(GridLayout):
     """Affiche un pavé avec heure, temps depuis le lancement, etc."""
@@ -81,14 +85,29 @@ class Graphique2(RelativeLayout):
         self.add_widget(self.label_titre)
         Clock.schedule_interval(self.update, FREQ)
         self.temps = 0
-        for i in range(0, 300):
-            self.graphX.append(i)
-            self.graphY.append(self.y_mid)
+        if self.capteur.nom == "Altitude":
+            for i in range(0, 300):
+                self.graphX.append(i)
+                self.graphY.append(0)
+        else:
+            for i in range(0, 300):
+                self.graphX.append(i)
+                self.graphY.append(self.y_mid)
 
     def update(self, dt):
         self.temps += FREQ
         self.canvas.clear()
         # Dessin du cadre
+        """TEST"""
+        mylabel = CoreLabel(text="Hi there!", font_size=25, color=(0, 0, 0, 1))
+        # Force refresh to compute things and generate the texture
+        mylabel.refresh()
+        # Get the texture and the texture size
+        texture = mylabel.texture
+        texture_size = list(texture.size)
+        # Draw the texture on any widget canvas
+        self.canvas.add(Rectangle(texture=texture, size=texture_size))
+        """FIN DE TEST"""
         with self.canvas:
             Color(1, 1, 1)
             Line(rectangle=(0, 0, self.L, self.H), width=2)
