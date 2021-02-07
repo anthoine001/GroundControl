@@ -1,32 +1,44 @@
 MainWidget:
 
+
+<BackgroundColor@Widget>
+    background_color: 1, 1, 1, 1
+    canvas.before:
+        Color:
+            rgba: root.background_color
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+<BackgroundLabel@Label+BackgroundColor>
+    background_color: 1, 1, 1, 1
+
+
 <MainWidget>:
-    GridLayout:
-        cols: 3
-        ControleTir:
-        Graphique2:
-        Graphique2:
-        Graphique2:
-        Graphique2:
-        Graphique2:
+
 
 <ControleTir>:
     cols: 2
-    orientation: "vertical"
-    Label:
+    BackgroundLabel:
         text: root.heure
+        color: 0,0,0
+        size_hint: 1.3, None
+        height: 30
+
     Button:
         pos: 0, 0
         text: "Mise a feu"
-        size_hint: None, None
+        background_color: 1, 0, 0
+        size_hint: 1, None
         height: 30
         pos_hint: {"y" : 1}
         on_press: root.on_button_click()
-    BoxLayout:
-        orientation: "vertical"
-        Label:
-            text: "Depuis le decollage:"
-        Label:
-            text: root.since_launch
+        disabled: root.launched
+
+    Label:
+        text: "Depuis le decollage:"
+    Label:
+        text: root.since_launch
+
 
 
