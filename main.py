@@ -1,5 +1,4 @@
 from datetime import *
-from math import cos
 from kivy.config import Config
 from kivy.app import App
 from kivy.graphics.context_instructions import Color
@@ -79,14 +78,13 @@ class Graphique2(RelativeLayout):
             y1 = self.graphY[i]
             x2 = self.graphX[i+1]
             y2 = self.graphY[i+1]
-            self.canvas.remove()
+            #self.canvas.remove()
             with self.canvas:
                 Color(0, 1, 1)
                 Line(points=(x1, y1, x2, y2))
         for i in range(0, 299):
             self.graphY[i] = self.graphY[i + 1]
         # Mise à jour de de la valeur du capteur
-        #self.graphY[299] = 50 + 50 * cos(self.temps)
         self.graphY[299] = self.capteur
 
     def transform(self, dataX, dataY):
