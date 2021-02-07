@@ -10,7 +10,6 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.relativelayout import RelativeLayout
 
-
 FREQ = .1
 
 
@@ -18,6 +17,7 @@ class Capteur:
     def __init__(self):
         self.nom = ""
         self.data = []
+
 
 """ A developper
 vitesse = Capteur()
@@ -41,7 +41,7 @@ class ControleTir(GridLayout):
     def update_controle_tir(self, dt):
         self.heure = datetime.now().strftime('%H:%M:%S')
         if self.launch_time is not None:
-            self.since_launch = str(datetime.now()-self.launch_time)
+            self.since_launch = str(datetime.now() - self.launch_time)
 
     def on_button_click(self):
         self.launch_time = datetime.now()
@@ -51,15 +51,19 @@ class ControleTir(GridLayout):
 
 class Graphique2(RelativeLayout):
     courbe = []
-    def __init__(self, capteur=1, **kvargs):
+
+    def __init__(self, capteur=1, titre="", **kvargs):
         super().__init__(**kvargs)
+        self.titre = titre
         self.L = 300
         self.H = 200
         self.graphX = []
         self.graphY = []
-        self.y_mid = self.H/2
+        self.y_mid = self.H / 2
         self.capteur = capteur
-        self.add_widget(Label(text="TITRE"))
+        self.label_titre = Label(text=self.titre, color=(1, 0.5, 0), valign='top', text_size=(self.width, self.height),
+                                 padding_y=5)
+        self.add_widget(self.label_titre)
         Clock.schedule_interval(self.update, FREQ)
         self.temps = 0
         for i in range(0, 300):
@@ -69,16 +73,18 @@ class Graphique2(RelativeLayout):
     def update(self, dt):
         self.temps += FREQ
         self.canvas.clear()
+        self.remove_widget(self.label_titre)
+        self.add_widget(self.label_titre)
         # Dessin du cadre
-        with self.canvas:
+        with self.canvas.before:
             Color(1, 1, 1)
             Line(rectangle=(0, 0, dp(self.L), dp(self.H)), width=2)
         for i in range(0, 299):
             x1 = self.graphX[i]
             y1 = self.graphY[i]
-            x2 = self.graphX[i+1]
-            y2 = self.graphY[i+1]
-            #self.canvas.remove()
+            x2 = self.graphX[i + 1]
+            y2 = self.graphY[i + 1]
+            # self.canvas.remove()
             with self.canvas:
                 Color(0, 1, 1)
                 Line(points=(x1, y1, x2, y2))
@@ -107,13 +113,12 @@ class GroundControlStationApp(App):
         self.title = 'Ground Control Station - Section Espace'
         layout = GridLayout(cols=3)
         layout.add_widget(ControleTir())
-        layout.add_widget(Graphique2(30))
-        layout.add_widget(Graphique2(50))
-        layout.add_widget(Graphique2(10))
-        layout.add_widget(Graphique2(100))
-        layout.add_widget(Graphique2(30))
+        layout.add_widget(Graphique2(30, "Vitesse"))
+        layout.add_widget(Graphique2(50, "Altitude"))
+        layout.add_widget(Graphique2(10, "inclinaison_x"))
+        layout.add_widget(Graphique2(120, "inclinaison_y"))
+        layout.add_widget(Graphique2(30, "inclinaison_z"))
         return layout
-
 
 
 Config.set('graphics', 'width', '1000')
