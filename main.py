@@ -1,4 +1,6 @@
 from datetime import *
+from random import random
+
 from kivy.config import Config
 from kivy.app import App
 from kivy.graphics.context_instructions import Color
@@ -14,21 +16,32 @@ FREQ = .1
 
 
 class Capteur:
-    def __init__(self):
-        self.nom = ""
-        self.data = []
+    """Classe de dévelopement de l'application
+    A remplacer plus tard par l'acquisition des signaux réels du port série"""
+    def __init__(self, nom="", coef = 1):
+        self.nom = nom
+        self.data = .0
+        self.coef = coef
+        # self.data = .0
+        Clock.schedule_interval(self.capteur_update, .1)
 
+    def capteur_update(self, dt):
+        self.data = self.coef * (random() * 200 - 50)
+        # print(self.nom + " : " + str(self.data))
 
-""" A developper
-vitesse = Capteur()
-accel = Capteur()
-
-for i in range(0,300):
-    vitesse.data.append(2 * cos(i/10) + 1)
-"""
-
+# ---- Capteurs de test ------
+vitesse = Capteur("vitesse", 0.3)
+altitude = Capteur("Altitude", 0.1)
+gyro_x = Capteur("Inclinaison_x", 0.6)
+gyro_y = Capteur("Inclinaison_y", 0.6)
+gyro_z = Capteur("Inclinaison_z", 0.6)
+gps_lat = Capteur("GPS_lat", 1)
+gps_long = Capteur("GPS_long", 1)
+vide = Capteur("vide", 0)
+# ---- Capteurs de test ------
 
 class ControleTir(GridLayout):
+    """Affiche un pavé avec heure, temps depuis le lancement, etc."""
     heure = StringProperty("Heure")
     launched = BooleanProperty(False)
     since_launch = StringProperty("0.000 s")
@@ -52,7 +65,7 @@ class ControleTir(GridLayout):
 class Graphique2(RelativeLayout):
     courbe = []
 
-    def __init__(self, capteur=1, titre="", **kvargs):
+    def __init__(self, capteur, titre="", **kvargs):
         super().__init__(**kvargs)
         self.titre = titre
         self.L = 300
@@ -61,8 +74,10 @@ class Graphique2(RelativeLayout):
         self.graphY = []
         self.y_mid = self.H / 2
         self.capteur = capteur
-        self.label_titre = Label(text=self.titre, color=(1, 0.5, 0), valign='top', text_size=(self.width, self.height),
-                                 padding_y=5)
+        print(type(capteur))
+        self.label_titre = Label(text=self.titre, color=(1, 0.5, 0), text_size=(self.width, self.height),
+                                 size_hint=(1, 2),
+                                 padding_y=0)
         self.add_widget(self.label_titre)
         Clock.schedule_interval(self.update, FREQ)
         self.temps = 0
@@ -73,30 +88,27 @@ class Graphique2(RelativeLayout):
     def update(self, dt):
         self.temps += FREQ
         self.canvas.clear()
+        # Dessin du cadre
+        with self.canvas:
+            Color(1, 1, 1)
+            Line(rectangle=(0, 0, self.L, self.H), width=2)
         self.remove_widget(self.label_titre)
         self.add_widget(self.label_titre)
-        # Dessin du cadre
-        with self.canvas.before:
-            Color(1, 1, 1)
-            Line(rectangle=(0, 0, dp(self.L), dp(self.H)), width=2)
+        # Trace la courbe
         for i in range(0, 299):
             x1 = self.graphX[i]
             y1 = self.graphY[i]
             x2 = self.graphX[i + 1]
             y2 = self.graphY[i + 1]
-            # self.canvas.remove()
             with self.canvas:
                 Color(0, 1, 1)
                 Line(points=(x1, y1, x2, y2))
+        # mise à jour des points avec intégration de la nouvelle valeur
+        # à la fin
         for i in range(0, 299):
             self.graphY[i] = self.graphY[i + 1]
         # Mise à jour de de la valeur du capteur
-        self.graphY[299] = self.capteur
-
-    def transform(self, dataX, dataY):
-        transformx = 0
-        transformy = 0
-        return transformx, transformy
+        self.graphY[299] = self.capteur.data
 
 
 class MainWidget(BoxLayout):
@@ -113,15 +125,18 @@ class GroundControlStationApp(App):
         self.title = 'Ground Control Station - Section Espace'
         layout = GridLayout(cols=3)
         layout.add_widget(ControleTir())
-        layout.add_widget(Graphique2(30, "Vitesse"))
-        layout.add_widget(Graphique2(50, "Altitude"))
-        layout.add_widget(Graphique2(10, "inclinaison_x"))
-        layout.add_widget(Graphique2(120, "inclinaison_y"))
-        layout.add_widget(Graphique2(30, "inclinaison_z"))
+        layout.add_widget(Graphique2(vitesse, "Vitesse"))
+        layout.add_widget(Graphique2(altitude, "Altitude"))
+        layout.add_widget(Graphique2(gyro_x, "inclinaison_x"))
+        layout.add_widget(Graphique2(gyro_y, "inclinaison_y"))
+        layout.add_widget(Graphique2(gyro_z, "inclinaison_z"))
+        layout.add_widget(Graphique2(gps_lat, "GPS_L"))
+        layout.add_widget(Graphique2(gps_long, "GPS_l"))
+        layout.add_widget(Graphique2(vide, "vide"))
         return layout
 
 
 Config.set('graphics', 'width', '1000')
-Config.set('graphics', 'height', '600')
+Config.set('graphics', 'height', '800')
 
 GroundControlStationApp().run()
