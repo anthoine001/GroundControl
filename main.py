@@ -15,7 +15,7 @@ from kivy.uix.relativelayout import RelativeLayout
 FREQ = .1
 
 
-class Capteur:
+class CapteurTest:
     """Classe de dévelopement de l'application
     A remplacer plus tard par l'acquisition des signaux réels du port série"""
     def __init__(self, nom="", coef=1.):
@@ -33,14 +33,14 @@ class Capteur:
 
 
 # ---- Capteurs de test ------
-vitesse = Capteur("vitesse", 0.3)
-altitude = Capteur("Altitude", 0.1)
-gyro_x = Capteur("Inclinaison_x", 0.6)
-gyro_y = Capteur("Inclinaison_y", 0.6)
-gyro_z = Capteur("Inclinaison_z", 0.6)
-gps_lat = Capteur("GPS_lat", 1)
-gps_long = Capteur("GPS_long", 1)
-vide = Capteur("vide", 0)
+vitesse = CapteurTest("vitesse", 0.3)
+altitude = CapteurTest("Altitude", 0.1)
+gyro_x = CapteurTest("Inclinaison_x", 0.6)
+gyro_y = CapteurTest("Inclinaison_y", 0.6)
+gyro_z = CapteurTest("Inclinaison_z", 0.6)
+gps_lat = CapteurTest("GPS_lat", 1)
+gps_long = CapteurTest("GPS_long", 1)
+vide = CapteurTest("vide", 0)
 # ---- Capteurs de test ------
 
 
@@ -78,7 +78,6 @@ class Graphique2(RelativeLayout):
         self.graphY = []
         self.y_mid = self.H / 2
         self.capteur = capteur
-        print(type(capteur))
         self.label_titre = Label(text=self.titre,
                                  color=(1, 0.5, 0),
                                  text_size=(self.width, self.height),
