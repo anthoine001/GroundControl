@@ -5,6 +5,9 @@ Nécessite Python 3.7.8 et kivy et pyserial
 
 (pip install kivy)
 (pip install pyserial)
+(pip install serial)
+
+codes en C pour la fonction emeteur et recepteur (de test)
 
 Projet démarré en février 2021.
 
