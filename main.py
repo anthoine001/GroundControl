@@ -10,9 +10,28 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.relativelayout import RelativeLayout
+import serial
 
 # fréquence d'acquisition de signal
 FREQ = .1
+
+
+class Recepteur:
+    """Capteur alimenté par la liaison série"""
+    def __init__(self, nom=""):
+        self.ser = serial.Serial('/dev/cu.usbmodem1411', 9600)
+        self.nom = nom
+        self.data = .0
+        Clock.schedule_interval(self.recepteur_update, FREQ)
+
+    def recepteur_update(self, dt):
+        try:
+            value = float(self.ser.readline().strip())
+            print(value/1000)
+            if value/1000 < 10:
+                self.data = value/1000
+        except:
+            self.data = 0
 
 
 class CapteurTest:
@@ -41,6 +60,7 @@ gyro_z = CapteurTest("Inclinaison_z", 0.6)
 gps_lat = CapteurTest("GPS_lat", 1)
 gps_long = CapteurTest("GPS_long", 1)
 vide = CapteurTest("vide", 0)
+reception = Recepteur()
 # ---- Capteurs de test ------
 
 
@@ -166,7 +186,7 @@ class GroundControlStationApp(App):
         layout.add_widget(Graphique2(gyro_z, "inclinaison_z"))
         layout.add_widget(Graphique2(gps_lat, "GPS_L"))
         layout.add_widget(Graphique2(gps_long, "GPS_l"))
-        layout.add_widget(Graphique2(vide, "vide"))
+        layout.add_widget(Graphique2(reception, "Recepteur"))
         return layout
 
 
