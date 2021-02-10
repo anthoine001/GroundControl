@@ -1,10 +1,11 @@
+from math import cos, sin, pi
 from datetime import *
 from random import random
 from kivy.core.text import Label as CoreLabel
 from kivy.config import Config
 from kivy.app import App
 from kivy.graphics.context_instructions import Color
-from kivy.graphics.vertex_instructions import Line, Rectangle
+from kivy.graphics.vertex_instructions import Line, Rectangle, Ellipse
 from kivy.properties import Clock, StringProperty, BooleanProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
@@ -13,13 +14,18 @@ from kivy.uix.relativelayout import RelativeLayout
 import serial
 
 # fréquence d'acquisition de signal
+from kivy.uix.widget import Widget
+
 FREQ = .1
 
 
 class Recepteur:
     """Capteur alimenté par la liaison série"""
     def __init__(self, nom=""):
-        self.ser = serial.Serial('/dev/cu.usbmodem1411', 9600)
+        try:
+            self.ser = serial.Serial('/dev/cu.usbmodem1411', 9600)
+        except:
+            print("no reception")
         self.nom = nom
         self.data = .0
         Clock.schedule_interval(self.recepteur_update, FREQ)
@@ -84,6 +90,55 @@ class ControleTir(GridLayout):
         self.launch_time = datetime.now()
         print("La fusée est lancée à :" + self.launch_time.strftime('%H:%M:%S'))
         self.launched = True
+
+
+class SpaceXWidget(BoxLayout):
+    """un cercle de rayon 700, centre à 500,-600"""
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        position = (self.center_x, 100)
+        self.angles = []
+        self.phases = []
+        a = 700*cos(80/180*3.14)
+        b = 700*sin(80/180*3.14)
+        with self.canvas:
+            self.e = Line(circle=(500, 100, 7))
+            self.f = Line(circle=(500+a, b-600, 7))
+        Clock.schedule_interval(self.update, FREQ)
+        self.phases.append("Launch")
+        self.phases.append("Separation")
+        self.angles.append(90)
+        self.angles.append(76)
+
+    def update(self, dt):
+        self.canvas.clear()
+        for i in range(0, len(self.phases)):
+            self.angles[i] += FREQ
+            mylabel = CoreLabel(text=self.phases[i], font_size=13, color=(1, 1, 1, 1))
+            # Force refresh to compute things and generate the texture
+            mylabel.refresh()
+            # Get the texture and the texture size
+            texture = mylabel.texture
+            texture_size = list(texture.size)
+            a = 700*cos(self.angles[i]/180*pi)
+            b = 700*sin(self.angles[i]/180*pi)
+            with self.canvas:
+                Color(1,1,1)
+                Rectangle(pos=(485+a, b-590), texture=texture, size=texture_size)
+                Line(circle=(500+a, b-600, 7))
+        #mylabel = CoreLabel(text=GroundControlStationApp().MainControlTir.since_launch, font_size=26, color=(1, 1, 1, 1))
+        mylabel = CoreLabel(text='T+00:00:00', font_size=26, color=(1, 1, 1, 1))
+        # Force refresh to compute things and generate the texture
+        mylabel.refresh()
+        # Get the texture and the texture size
+        texture = mylabel.texture
+        texture_size = list(texture.size)
+        with self.canvas:
+            Color(1,1,1)
+            Line(circle=(500, -600, 700, -30, 30))
+            Line(circle=(500, -600, 700, -30, 0), width=2)
+            Rectangle(pos=(430, 30), texture=texture, size=texture_size)
+
 
 
 class Graphique2(RelativeLayout):
@@ -164,7 +219,6 @@ class Graphique2(RelativeLayout):
             self.canvas.add(self.g[i])
 
 
-
 class MainWidget(BoxLayout):
     def __init__(self, **kvargs):
         super().__init__(**kvargs)
@@ -174,10 +228,13 @@ class MainWidget(BoxLayout):
 class GroundControlStationApp(App):
     def __init__(self, **kvargs):
         super().__init__(**kvargs)
+        #self.MainControlTir = ControleTir()
 
     def build(self):
         self.title = 'Ground Control Station - Section Espace'
+        box = BoxLayout(orientation="vertical")
         layout = GridLayout(cols=3)
+        #layout.add_widget(self.MainControlTir)
         layout.add_widget(ControleTir())
         layout.add_widget(Graphique2(vitesse, "Vitesse"))
         layout.add_widget(Graphique2(altitude, "Altitude"))
@@ -187,7 +244,10 @@ class GroundControlStationApp(App):
         layout.add_widget(Graphique2(gps_lat, "GPS_L"))
         layout.add_widget(Graphique2(gps_long, "GPS_l"))
         layout.add_widget(Graphique2(reception, "Recepteur"))
-        return layout
+        box.add_widget(layout)
+        box.add_widget(SpaceXWidget())
+
+        return box
 
 
 Config.set('graphics', 'width', '1000')
