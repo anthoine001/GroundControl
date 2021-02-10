@@ -92,6 +92,9 @@ class ControleTir(GridLayout):
         self.launched = True
 
 
+#MainControleTir = ControleTir()
+
+
 class SpaceXWidget(BoxLayout):
     """un cercle de rayon 700, centre à 500,-600"""
     def __init__(self, **kwargs):
@@ -113,7 +116,7 @@ class SpaceXWidget(BoxLayout):
     def update(self, dt):
         self.canvas.clear()
         for i in range(0, len(self.phases)):
-            self.angles[i] += FREQ
+            #self.angles[i] += FREQ
             mylabel = CoreLabel(text=self.phases[i], font_size=13, color=(1, 1, 1, 1))
             # Force refresh to compute things and generate the texture
             mylabel.refresh()
