@@ -6,7 +6,7 @@ from kivy.graphics.vertex_instructions import Line, Rectangle
 from kivy.properties import StringProperty, BooleanProperty, Clock
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
-
+from kivy.uix.relativelayout import RelativeLayout
 
 FREQ = 0.1
 
@@ -35,7 +35,7 @@ class ControleTir(GridLayout):
         self.launched = True
 
 
-class SpaceXWidget(BoxLayout):
+class SpaceXWidget(RelativeLayout):
     """un cercle de rayon 700, centre à 500,-600"""
     def __init__(self, CtrlTir, **kwargs):
         super().__init__(**kwargs)

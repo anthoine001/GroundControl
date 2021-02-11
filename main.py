@@ -69,11 +69,12 @@ reception = Recepteur()
 # ---- Capteurs de test ------
 
 
-class Graphique2(RelativeLayout):
+class Graphique(RelativeLayout):
     courbe = []
 
     def __init__(self, capteur, titre="", **kvargs):
         super().__init__(**kvargs)
+        self.g = []
         self.titre = titre
         self.L = 300
         self.H = 200
@@ -132,7 +133,6 @@ class Graphique2(RelativeLayout):
         self.graphY[max_graph-1] = self.capteur.data
 
     def chart_unit(self):
-        self.g = []
         for i in range(0,10):
             mylabel = CoreLabel(text=str(i-9), font_size=15, color=(1, 1, 1, 1))
             # Force refresh to compute things and generate the texture
@@ -164,14 +164,14 @@ class GroundControlStationApp(App):
 
         my_controle_tir = ControleTir()
         layout.add_widget(my_controle_tir)
-        layout.add_widget(Graphique2(vitesse, "Vitesse"))
-        layout.add_widget(Graphique2(altitude, "Altitude"))
-        layout.add_widget(Graphique2(gyro_x, "inclinaison_x"))
-        layout.add_widget(Graphique2(gyro_y, "inclinaison_y"))
-        layout.add_widget(Graphique2(gyro_z, "inclinaison_z"))
-        layout.add_widget(Graphique2(gps_lat, "GPS_L"))
-        layout.add_widget(Graphique2(gps_long, "GPS_l"))
-        layout.add_widget(Graphique2(reception, "Recepteur"))
+        layout.add_widget(Graphique(vitesse, "Vitesse"))
+        layout.add_widget(Graphique(altitude, "Altitude"))
+        layout.add_widget(Graphique(gyro_x, "inclinaison_x"))
+        layout.add_widget(Graphique(gyro_y, "inclinaison_y"))
+        layout.add_widget(Graphique(gyro_z, "inclinaison_z"))
+        layout.add_widget(Graphique(gps_lat, "GPS_L"))
+        layout.add_widget(Graphique(gps_long, "GPS_l"))
+        layout.add_widget(Graphique(reception, "Recepteur"))
         box.add_widget(layout)
         box.add_widget(SpaceXWidget(my_controle_tir))
         #box.add_widget(layout)
