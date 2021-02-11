@@ -99,7 +99,6 @@ class SpaceXWidget(BoxLayout):
     """un cercle de rayon 700, centre à 500,-600"""
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        position = (self.center_x, 100)
         self.angles = []
         self.phases = []
         a = 700*cos(80/180*3.14)
@@ -112,11 +111,18 @@ class SpaceXWidget(BoxLayout):
         self.phases.append("Separation")
         self.angles.append(90)
         self.angles.append(76)
+        self.compteur_cs = 0
+        self.compteur_s =0
 
     def update(self, dt):
         self.canvas.clear()
         for i in range(0, len(self.phases)):
-            #self.angles[i] += FREQ
+            self.angles[i] += FREQ
+            self.compteur_cs += int(FREQ * 10)
+            if self.compteur_cs == 10:
+                self.compteur_cs = 0
+                self.compteur_s += 1
+
             mylabel = CoreLabel(text=self.phases[i], font_size=13, color=(1, 1, 1, 1))
             # Force refresh to compute things and generate the texture
             mylabel.refresh()
@@ -129,8 +135,9 @@ class SpaceXWidget(BoxLayout):
                 Color(1,1,1)
                 Rectangle(pos=(485+a, b-590), texture=texture, size=texture_size)
                 Line(circle=(500+a, b-600, 7))
+        """ compteur """
         #mylabel = CoreLabel(text=GroundControlStationApp().MainControlTir.since_launch, font_size=26, color=(1, 1, 1, 1))
-        mylabel = CoreLabel(text='T+00:00:00', font_size=26, color=(1, 1, 1, 1))
+        mylabel = CoreLabel(text=('T+'+'00:'+str(self.compteur_s)+":"+str(self.compteur_cs)), font_size=26, color=(1, 1, 1, 1))
         # Force refresh to compute things and generate the texture
         mylabel.refresh()
         # Get the texture and the texture size
