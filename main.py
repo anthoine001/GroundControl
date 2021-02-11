@@ -5,7 +5,7 @@ from kivy.core.text import Label as CoreLabel
 from kivy.config import Config
 from kivy.app import App
 from kivy.graphics.context_instructions import Color
-from kivy.graphics.vertex_instructions import Line, Rectangle, Ellipse
+from kivy.graphics.vertex_instructions import Line, Rectangle
 from kivy.properties import Clock, StringProperty, BooleanProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
@@ -14,8 +14,6 @@ from kivy.uix.relativelayout import RelativeLayout
 import serial
 
 # fréquence d'acquisition de signal
-from kivy.uix.widget import Widget
-
 FREQ = .1
 
 
@@ -80,75 +78,73 @@ class ControleTir(GridLayout):
         super().__init__(**kwargs)
         Clock.schedule_interval(self.update_controle_tir, .1)
         self.launch_time = None
+        self.date_since_launch = None
 
     def update_controle_tir(self, dt):
         self.heure = datetime.now().strftime('%H:%M:%S')
         if self.launch_time is not None:
+            self.date_since_launch = datetime.now()-self.launch_time
             self.since_launch = str(datetime.now() - self.launch_time)
+
 
     def on_button_click(self):
         self.launch_time = datetime.now()
-        print("La fusée est lancée à :" + self.launch_time.strftime('%H:%M:%S'))
+        print("La fusée est lancée à :" + self.launch_time.strftime('%H:%M:%S.%f'))
         self.launched = True
-
-
-#MainControleTir = ControleTir()
 
 
 class SpaceXWidget(BoxLayout):
     """un cercle de rayon 700, centre à 500,-600"""
-    def __init__(self, **kwargs):
+    def __init__(self, CtrlTir, **kwargs):
         super().__init__(**kwargs)
+        self.CtrlTir = CtrlTir
         self.angles = []
         self.phases = []
-        a = 700*cos(80/180*3.14)
-        b = 700*sin(80/180*3.14)
-        with self.canvas:
-            self.e = Line(circle=(500, 100, 7))
-            self.f = Line(circle=(500+a, b-600, 7))
+
         Clock.schedule_interval(self.update, FREQ)
+        """Paramètres de la mission à passer plus tard par une fenetre de parametres"""
         self.phases.append("Launch")
         self.phases.append("Separation")
+        self.phases.append("Landing")
         self.angles.append(90)
         self.angles.append(76)
-        self.compteur_cs = 0
-        self.compteur_s =0
+        self.angles.append(38)
+
+        self.affiche_timer("T+00:00:00", 26, 430, 30)
+        for i in range(0, len(self.phases)):
+            a = 700 * cos(self.angles[i] / 180 * pi)
+            b = 700 * sin(self.angles[i] / 180 * pi)
+            with self.canvas:
+                Color(1, 1, 1)
+                Line(circle=(500 + a, b - 600, 7))
+            self.affiche_timer(self.phases[i], 13, 485 + a, b - 590)
 
     def update(self, dt):
-        self.canvas.clear()
-        for i in range(0, len(self.phases)):
-            self.angles[i] += FREQ
-            self.compteur_cs += int(FREQ * 10)
-            if self.compteur_cs == 10:
-                self.compteur_cs = 0
-                self.compteur_s += 1
-
-            mylabel = CoreLabel(text=self.phases[i], font_size=13, color=(1, 1, 1, 1))
-            # Force refresh to compute things and generate the texture
-            mylabel.refresh()
-            # Get the texture and the texture size
-            texture = mylabel.texture
-            texture_size = list(texture.size)
-            a = 700*cos(self.angles[i]/180*pi)
-            b = 700*sin(self.angles[i]/180*pi)
+        if self.CtrlTir.launched:
+            self.canvas.clear()
+            for i in range(0, len(self.phases)):
+                self.angles[i] += FREQ
+                a = 700*cos(self.angles[i]/180*pi)
+                b = 700*sin(self.angles[i]/180*pi)
+                with self.canvas:
+                    Color(1, 1, 1)
+                    Line(circle=(500+a, b-600, 7))
+                self.affiche_timer(self.phases[i], 13, 485 + a, b - 590)
+            """ compteur """
+            self.affiche_timer("T+"+str(self.CtrlTir.date_since_launch), 26, 430, 30)
             with self.canvas:
-                Color(1,1,1)
-                Rectangle(pos=(485+a, b-590), texture=texture, size=texture_size)
-                Line(circle=(500+a, b-600, 7))
-        """ compteur """
-        #mylabel = CoreLabel(text=GroundControlStationApp().MainControlTir.since_launch, font_size=26, color=(1, 1, 1, 1))
-        mylabel = CoreLabel(text=('T+'+'00:'+str(self.compteur_s)+":"+str(self.compteur_cs)), font_size=26, color=(1, 1, 1, 1))
-        # Force refresh to compute things and generate the texture
+                Color(1, 1, 1)
+                Line(circle=(500, -600, 700, -30, 30))
+                Line(circle=(500, -600, 700, -30, 0), width=2)
+
+    def affiche_timer(self, texte, size, a, b):
+        mylabel = CoreLabel(text=texte, font_size=size,
+                            color=(1, 1, 1, 1))
         mylabel.refresh()
-        # Get the texture and the texture size
         texture = mylabel.texture
         texture_size = list(texture.size)
         with self.canvas:
-            Color(1,1,1)
-            Line(circle=(500, -600, 700, -30, 30))
-            Line(circle=(500, -600, 700, -30, 0), width=2)
-            Rectangle(pos=(430, 30), texture=texture, size=texture_size)
-
+            Rectangle(pos=(a, b), texture=texture, size=texture_size)
 
 
 class Graphique2(RelativeLayout):
@@ -245,7 +241,8 @@ class GroundControlStationApp(App):
         box = BoxLayout(orientation="vertical")
         layout = GridLayout(cols=3)
         #layout.add_widget(self.MainControlTir)
-        layout.add_widget(ControleTir())
+        my_controle_tir = ControleTir()
+        layout.add_widget(my_controle_tir)
         layout.add_widget(Graphique2(vitesse, "Vitesse"))
         layout.add_widget(Graphique2(altitude, "Altitude"))
         layout.add_widget(Graphique2(gyro_x, "inclinaison_x"))
@@ -255,7 +252,7 @@ class GroundControlStationApp(App):
         layout.add_widget(Graphique2(gps_long, "GPS_l"))
         layout.add_widget(Graphique2(reception, "Recepteur"))
         box.add_widget(layout)
-        box.add_widget(SpaceXWidget())
+        box.add_widget(SpaceXWidget(my_controle_tir))
 
         return box
 
