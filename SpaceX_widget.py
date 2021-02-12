@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 from datetime import datetime
 from math import cos, sin, pi
 from kivy.core.text import Label as CoreLabel
