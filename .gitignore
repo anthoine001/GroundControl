@@ -2,4 +2,4 @@ __pycache__/
 *.swp
 *.swo
 venv
-misc.xml
+.idea
