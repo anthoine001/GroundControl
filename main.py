@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 from random import random
 from kivy.core.text import Label as CoreLabel

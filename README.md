@@ -1,16 +1,37 @@
 # GroundControl
-Programme de télémétrie et de visualtion au sol pour lanceurs expérimentaux légers
-
-Nécessite Python 3.7.8 et kivy et pyserial
-
-(pip install kivy)
-(pip install pyserial)
-(pip install serial)
-
-codes en C pour la fonction emeteur et recepteur (de test)
+Programme de télémétrie et de visualtion au sol pour lanceurs expérimentaux légers.
+![GroundControl-screenshot](screenshot.png)
 
 Projet démarré en février 2021.
 
 Contributeurs :
 Antoine SELOSSE
 
+## Dépendance
+Nécessite les packages système Python3, Cython.
+sous debian/ubuntu:
+
+```bash
+$ sudo apt install python3-venv python3-pip cython
+```
+
+## Installation
+Apres le telechargement du projet avec git:
+```bash
+$ git clone https://github.com/anthoine001/GroundControl
+```
+
+L'installation peut etre faite facilement dans un environment virtuel
+```bash
+$ python3 -m venv venv
+$ . venv/bin/activate
+$ pip3 install -r requirements.txt
+```
+
+## Usage
+```bash
+$ ./main.py
+```
+
+## Détails
+codes en C pour la fonction emeteur et recepteur (de test)
