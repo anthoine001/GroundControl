@@ -1,6 +1,6 @@
 # GroundControl
 Programme de télémétrie et de visualtion au sol pour lanceurs expérimentaux légers.
-![GroundControl-screenshot](screenshot.png)
+![GroundControl-screenshot](screenshot2.png)
 
 Projet démarré en février 2021.
 
