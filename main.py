@@ -14,11 +14,11 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.relativelayout import RelativeLayout
 import serial
-
-# from SpaceX_widget import SpaceXWidget, ControleTir
-# fréquence d'acquisition de signal
 from kivy.uix.screenmanager import ScreenManager
+# from SpaceX_widget import SpaceXWidget, ControleTir
 
+
+# fréquence d'acquisition de signal
 FREQ = .1
 
 
@@ -249,11 +249,6 @@ class SpaceXWidget(RelativeLayout):
 class MainWidget(BoxLayout):
     def __init__(self, **kvargs):
         super().__init__(**kvargs)
-
-
-class GroundControlStationApp(App):
-
-    def build(self):
         box = BoxLayout(orientation="vertical")
         layout = GridLayout(cols=3)
         my_controle_tir = ControleTir()
@@ -268,7 +263,40 @@ class GroundControlStationApp(App):
         layout.add_widget(Graphique(reception, "Recepteur"))
         box.add_widget(layout)
         box.add_widget(SpaceXWidget(my_controle_tir))
-        return box
+        self.add_widget(box)
+
+
+class NavigationScreenManager(ScreenManager):
+    screen_stack = []
+
+    def push(self, screen_name):
+        if screen_name not in self.screen_stack:
+            self.screen_stack.append(self.current)
+            self.transition.direction = "left"
+            self.current = screen_name
+
+    def pop(self):
+        if len(self.screen_stack) > 0:
+            screen_name = self.screen_stack[-1]
+            del self.screen_stack[-1]
+            self.transition.direction = "right"
+            self.current = screen_name
+
+
+class MyScreenManager(NavigationScreenManager):
+    pass
+
+
+class ParameterScreen(BoxLayout):
+    pass
+
+
+class GroundControlStationApp(App):
+    manager = ObjectProperty(None)
+
+    def build(self):
+        self.manager = MyScreenManager()
+        return self.manager
 
 
 Config.set('graphics', 'width', '1000')

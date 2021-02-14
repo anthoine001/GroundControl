@@ -1,6 +1,3 @@
-MainWidget:
-
-
 <BackgroundColor@Widget>
     background_color: 1, 1, 1, 1
     canvas.before:
@@ -13,12 +10,10 @@ MainWidget:
 <BackgroundLabel@Label+BackgroundColor>
     background_color: 1, 1, 1, 1
 
-<MyScreenManager>
-    Screen:
-        name: "Controle"
-        MainWidget:
 
 <MainWidget>:
+
+<ParameterScreen>:
 
 <SpaceXWidget>:
 
@@ -55,6 +50,30 @@ MainWidget:
         text: "Depuis le decollage:"
     Label:
         text: root.since_launch
+
+<MyScreenManager>
+    Screen:
+        name: "Menu"
+        MenuPrincipal:
+
+    Screen:
+        name: "Controle"
+        MainWidget:
+
+    Screen:
+        name: "Parametres"
+        ParameterScreen:
+
+<MenuPrincipal@BoxLayout>
+    orientation: "vertical"
+    Button:
+        text: "aller vers l'écran de contrôle"
+        on_press: app.manager.push("Controle")
+    Button:
+        text: "aller vers l'écran Parametres"
+        on_press: app.manager.push("Parametres")
+
+
 
 
 
