@@ -1,3 +1,5 @@
+
+
 <BackgroundColor@Widget>
     background_color: 1, 1, 1, 1
     canvas.before:
@@ -10,13 +12,14 @@
 <BackgroundLabel@Label+BackgroundColor>
     background_color: 1, 1, 1, 1
 
-
 <MainWidget>:
 
 <ParameterScreen>:
+    Button:
+        text: "Parametres"
+        on_press: app.manager.pop()
 
 <SpaceXWidget>:
-
     size_hint: 1., None
     size: 1., dp(150)
     canvas:
@@ -50,12 +53,11 @@
         text: "Depuis le decollage:"
     Label:
         text: root.since_launch
+    Button:
+        text: "Parametres"
+        on_press: app.manager.push("Parametres")
 
 <MyScreenManager>
-    Screen:
-        name: "Menu"
-        MenuPrincipal:
-
     Screen:
         name: "Controle"
         MainWidget:
