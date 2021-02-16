@@ -287,8 +287,11 @@ class MyScreenManager(NavigationScreenManager):
     pass
 
 
-class ParameterScreen(BoxLayout):
-    pass
+class ParameterScreen(GridLayout):
+    text_input_str = StringProperty("1")
+
+    def on_text_validate(self, widget):
+        self.text_input_str = widget.text
 
 
 class GroundControlStationApp(App):
