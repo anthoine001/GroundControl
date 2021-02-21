@@ -62,14 +62,14 @@ class CapteurTest:
 
 
 # ---- Capteurs de test ------
-vitesse = CapteurTest("vitesse", 0.3)
+vitesse = CapteurTest("Vitesse", 0.3)
 altitude = CapteurTest("Altitude", 0.1)
 gyro_x = CapteurTest("Inclinaison_x", 0.6)
 gyro_y = CapteurTest("Inclinaison_y", 0.6)
 gyro_z = CapteurTest("Inclinaison_z", 0.6)
 gps_lat = CapteurTest("GPS_lat", 1)
 gps_long = CapteurTest("GPS_long", 1)
-reception = Recepteur()
+reception = Recepteur("Recepteur")
 
 
 # ---- Capteurs de test ------
@@ -78,16 +78,16 @@ reception = Recepteur()
 class Graphique(RelativeLayout):
     courbe = []
 
-    def __init__(self, capteur, titre="", **kvargs):
+    def __init__(self, capteur, **kvargs):
         super().__init__(**kvargs)
         self.g = []
-        self.titre = titre
         self.L = 300
         self.H = 200
         self.graphX = []
         self.graphY = []
         self.y_mid = self.H / 2
         self.capteur = capteur
+        self.titre = self.capteur.nom
         self.label_titre = Label(text=self.titre,
                                  color=(1, 0.5, 0),
                                  text_size=(self.width, self.height),
@@ -124,6 +124,8 @@ class Graphique(RelativeLayout):
         self.canvas.clear()
         # Dessin du cadre
         with self.canvas:
+            Color(1, 1, 1, 0.8)
+            Line(points=(0, self.H/2, self.L, self.H/2))
             Color(1, 1, 1)
             Line(rectangle=(0, 0, self.L, self.H), width=2)
         self.remove_widget(self.label_titre)
@@ -194,14 +196,16 @@ class ControleTir(GridLayout):
 
 class SpaceXWidget(RelativeLayout):
     """un cercle de rayon 700, centre à 500,-600"""
-    def __init__(self, CtrlTir, **kwargs):
+    def __init__(self, ctrl_tir, parameters, **kwargs):
         super().__init__(**kwargs)
-        self.CtrlTir = CtrlTir
+        self.ctrl_tir = ctrl_tir
+        self.paraters = parameters
         self.angles = []
         self.phases = []
 
         Clock.schedule_interval(self.update, FREQ)
         """Paramètres de la mission à passer plus tard par une fenetre de parametres"""
+        # set_mission
         self.phases.append("Launch")
         self.phases.append("Separation")
         self.phases.append("Landing")
@@ -218,8 +222,11 @@ class SpaceXWidget(RelativeLayout):
                 Line(circle=(500 + a, b - 600, 7))
             self.affiche_timer(self.phases[i], 13, 485 + a, b - 590)
 
+    def set_mission(self):
+        return
+
     def update(self, dt):
-        if self.CtrlTir.launched:
+        if self.ctrl_tir.launched:
             self.canvas.clear()
             for i in range(0, len(self.phases)):
                 self.angles[i] += FREQ
@@ -230,7 +237,7 @@ class SpaceXWidget(RelativeLayout):
                     Line(circle=(500+a, b-600, 7))
                 self.affiche_timer(self.phases[i], 13, 485 + a, b - 590)
             """ compteur """
-            self.affiche_timer("T+"+str(self.CtrlTir.date_since_launch), 26, 430, 30)
+            self.affiche_timer("T+"+str(self.ctrl_tir.date_since_launch), 26, 430, 30)
             with self.canvas:
                 Color(1, 1, 1)
                 Line(circle=(500, -600, 700, -30, 30))
@@ -252,17 +259,17 @@ class MainWidget(BoxLayout):
         box = BoxLayout(orientation="vertical")
         layout = GridLayout(cols=3)
         my_controle_tir = ControleTir()
+        parameters = ParameterScreen()
         layout.add_widget(my_controle_tir)
-        layout.add_widget(Graphique(vitesse, "Vitesse"))
-        layout.add_widget(Graphique(altitude, "Altitude"))
-        layout.add_widget(Graphique(gyro_x, "inclinaison_x"))
-        layout.add_widget(Graphique(gyro_y, "inclinaison_y"))
-        layout.add_widget(Graphique(gyro_z, "inclinaison_z"))
-        layout.add_widget(Graphique(gps_lat, "GPS_L"))
-        layout.add_widget(Graphique(gps_long, "GPS_l"))
-        layout.add_widget(Graphique(reception, "Recepteur"))
+        layout.add_widget(Graphique(vitesse))
+        layout.add_widget(Graphique(altitude))
+        layout.add_widget(Graphique(gyro_x))
+        layout.add_widget(Graphique(gyro_y))
+        layout.add_widget(Graphique(gyro_z))
+        layout.add_widget(Graphique(gps_lat))
+        layout.add_widget(Graphique(reception))
         box.add_widget(layout)
-        box.add_widget(SpaceXWidget(my_controle_tir))
+        box.add_widget(SpaceXWidget(my_controle_tir, parameters))
         self.add_widget(box)
 
 
@@ -290,8 +297,13 @@ class MyScreenManager(NavigationScreenManager):
 class ParameterScreen(GridLayout):
     text_input_str = StringProperty("1")
 
+    def __init__(self, **kvargs):
+        super().__init__(**kvargs)
+        """"""
+
     def on_text_validate(self, widget):
         self.text_input_str = widget.text
+        print(self.text_input_str)
 
 
 class GroundControlStationApp(App):
