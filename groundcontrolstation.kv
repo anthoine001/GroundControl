@@ -16,71 +16,12 @@
 
 <ParameterScreen>:
     cols: 2
-    Label:
-        text: "Profil de mission"
+    Button:
         size_hint: None, None
-        width: "150dp"
+        width: "170dp"
         height: "30dp"
-        color: 1, 0.5, 0
-    Label:
-        text: ""
-        size_hint: None, None
-        height: "30dp"
-    Label:
-        text: "Launch"
-        size_hint: None, None
-        height: "30dp"
-    TextInput:
-        id: launch_tx
-        size_hint: None, None
-        width: "100dp"
-        height: "30dp"
-        multiline: False
-        on_text_validate: root.on_text_validate(self)
-    Label:
-        text: "Propulsion End"
-        size_hint: None, None
-        height: "30dp"
-    TextInput:
-        id: propulsion_end_tx
-        size_hint: None, None
-        width: "100dp"
-        height: "30dp"
-        multiline: False
-        on_text_validate: root.on_text_validate(self)
-    Label:
-        text: "Apogee"
-        size_hint: None, None
-        height: "30dp"
-    TextInput:
-        id: apogee_tx
-        size_hint: None, None
-        width: "100dp"
-        height: "30dp"
-        multiline: False
-        on_text_validate: root.on_text_validate(self)
-    Label:
-        text: "Parachute Deployment"
-        size_hint: None, None
-        height: "30dp"
-    TextInput:
-        id: parachute_tx
-        size_hint: None, None
-        width: "100dp"
-        height: "30dp"
-        multiline: False
-        on_text_validate: root.on_text_validate(self)
-    Label:
-        text: "Landing"
-        size_hint: None, None
-        height: "30dp"
-    TextInput:
-        id: landing_tx
-        size_hint: None, None
-        width: "100dp"
-        height: "30dp"
-        multiline: False
-        on_text_validate: root.on_text_validate(self)
+        text: "Validation"
+        on_press: app.manager.parameter_validation()
     Button:
         size_hint: None, None
         width: "150dp"

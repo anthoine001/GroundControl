@@ -15,12 +15,16 @@ from kivy.uix.label import Label
 from kivy.uix.relativelayout import RelativeLayout
 import serial
 from kivy.uix.screenmanager import ScreenManager
+from kivy.core.window import Window
 # from SpaceX_widget import SpaceXWidget, ControleTir
 
 
 # fréquence d'acquisition de signal
-FREQ = .1
+from kivy.uix.textinput import TextInput
 
+FREQ = .1
+Config.set('graphics', 'width', '1000')
+Config.set('graphics', 'height', '800')
 
 class Recepteur:
     """Capteur alimenté par la liaison série"""
@@ -199,7 +203,7 @@ class SpaceXWidget(RelativeLayout):
     def __init__(self, ctrl_tir, parameters, **kwargs):
         super().__init__(**kwargs)
         self.ctrl_tir = ctrl_tir
-        self.paraters = parameters
+        self.parameters = parameters
         self.angles = []
         self.phases = []
 
@@ -289,32 +293,34 @@ class NavigationScreenManager(ScreenManager):
             self.transition.direction = "right"
             self.current = screen_name
 
+    def parameter_validation(self):
+        print("ca marche")
+
 
 class MyScreenManager(NavigationScreenManager):
     pass
 
 
 class ParameterScreen(GridLayout):
-    text_input_str = StringProperty("1")
-
     def __init__(self, **kvargs):
         super().__init__(**kvargs)
-        """"""
-
-    def on_text_validate(self, widget):
-        self.text_input_str = widget.text
-        print(self.text_input_str)
+        champs = ["Launch", "Propulsion End", "Apogee", "Parachute Deployment", "Landing"]
+        self.add_widget(Label(text="Profil de mission", color=(1, 0.5, 0, 1), size_hint=(None, None), width=170,
+                              height=30))
+        self.add_widget(Label(text="", size_hint=(None, None), width=150, height=30))
+        for i in range (0, len(champs)):
+            self.add_widget(Label(text=champs[i], size_hint=(None, None), width=170, height=30))
+            self.add_widget(TextInput(multiline=False, size_hint=(None, None), width=100, height=30))
 
 
 class GroundControlStationApp(App):
     manager = ObjectProperty(None)
 
+
     def build(self):
         self.manager = MyScreenManager()
+        Window.size = (1000, 800)
         return self.manager
 
-
-Config.set('graphics', 'width', '1000')
-Config.set('graphics', 'height', '800')
 
 GroundControlStationApp().run()
