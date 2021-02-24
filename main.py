@@ -26,6 +26,7 @@ FREQ = .1
 Config.set('graphics', 'width', '1000')
 Config.set('graphics', 'height', '800')
 
+
 class Recepteur:
     """Capteur alimenté par la liaison série"""
 
@@ -208,14 +209,8 @@ class SpaceXWidget(RelativeLayout):
         self.phases = []
 
         Clock.schedule_interval(self.update, FREQ)
-        """Paramètres de la mission à passer plus tard par une fenetre de parametres"""
-        # set_mission
-        self.phases.append("Launch")
-        self.phases.append("Separation")
-        self.phases.append("Landing")
-        self.angles.append(90)
-        self.angles.append(76)
-        self.angles.append(38)
+        """Paramètres de la mission par une fenetre de parametres"""
+        self.set_mission()
 
         self.affiche_timer("T+00:00:00", 26, 430, 30)
         for i in range(0, len(self.phases)):
@@ -227,7 +222,12 @@ class SpaceXWidget(RelativeLayout):
             self.affiche_timer(self.phases[i], 13, 485 + a, b - 590)
 
     def set_mission(self):
-        return
+        for i in range(0, len(self.parameters.champs)):
+            self.phases.append(self.parameters.champs[i])
+            print(self.phases[i])
+        for i in range(0, len(self.parameters.val)):
+            self.angles.append(int(self.parameters.val[i].text))
+            print(self.angles[i])
 
     def update(self, dt):
         if self.ctrl_tir.launched:
@@ -264,6 +264,7 @@ class MainWidget(BoxLayout):
         layout = GridLayout(cols=3)
         my_controle_tir = ControleTir()
         parameters = ParameterScreen()
+        SpaceX = SpaceXWidget(my_controle_tir, parameters)
         layout.add_widget(my_controle_tir)
         layout.add_widget(Graphique(vitesse))
         layout.add_widget(Graphique(altitude))
@@ -273,7 +274,7 @@ class MainWidget(BoxLayout):
         layout.add_widget(Graphique(gps_lat))
         layout.add_widget(Graphique(reception))
         box.add_widget(layout)
-        box.add_widget(SpaceXWidget(my_controle_tir, parameters))
+        box.add_widget(SpaceX)
         self.add_widget(box)
 
 
@@ -293,9 +294,6 @@ class NavigationScreenManager(ScreenManager):
             self.transition.direction = "right"
             self.current = screen_name
 
-    def parameter_validation(self):
-        print("ca marche")
-
 
 class MyScreenManager(NavigationScreenManager):
     pass
@@ -304,18 +302,27 @@ class MyScreenManager(NavigationScreenManager):
 class ParameterScreen(GridLayout):
     def __init__(self, **kvargs):
         super().__init__(**kvargs)
-        champs = ["Launch", "Propulsion End", "Apogee", "Parachute Deployment", "Landing"]
+        self.val = []
+        self.champs = ["Launch", "Propulsion End", "Apogee", "Parachute Deployment", "Landing"]
         self.add_widget(Label(text="Profil de mission", color=(1, 0.5, 0, 1), size_hint=(None, None), width=170,
                               height=30))
         self.add_widget(Label(text="", size_hint=(None, None), width=150, height=30))
-        for i in range (0, len(champs)):
-            self.add_widget(Label(text=champs[i], size_hint=(None, None), width=170, height=30))
-            self.add_widget(TextInput(multiline=False, size_hint=(None, None), width=100, height=30))
+        for i in range (0, len(self.champs)):
+            self.add_widget(Label(text=self.champs[i], size_hint=(None, None), width=170, height=30))
+            self.val.append(TextInput(text=str(0), multiline=False, size_hint=(None, None), width=100, height=30))
+            self.add_widget(self.val[i])
+        self.val[0].text = str(90)
+        self.val[1].text = str(70)
+
+
+    def parameter_validation(self):
+        print("ca marche")
+        for i in range(0, len(self.val)):
+            print(self.val[i].text)
 
 
 class GroundControlStationApp(App):
     manager = ObjectProperty(None)
-
 
     def build(self):
         self.manager = MyScreenManager()
