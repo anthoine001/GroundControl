@@ -68,23 +68,17 @@
         text: "Parametres"
         on_press: app.manager.push("Parametres")
 
+
 <MyScreenManager>
     Screen:
         name: "Controle"
         MainWidget:
 
+
     Screen:
         name: "Parametres"
         ParameterScreen:
 
-<MenuPrincipal@BoxLayout>
-    orientation: "vertical"
-    Button:
-        text: "aller vers l'écran de contrôle"
-        on_press: app.manager.push("Controle")
-    Button:
-        text: "aller vers l'écran Parametres"
-        on_press: app.manager.push("Parametres")
 
 
 

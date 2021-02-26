@@ -10,6 +10,7 @@ from kivy.graphics.context_instructions import Color
 from kivy.graphics.vertex_instructions import Line, Rectangle
 from kivy.properties import Clock, StringProperty, BooleanProperty, ObjectProperty
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.button import Button
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.relativelayout import RelativeLayout
@@ -203,6 +204,11 @@ class ControleTir(GridLayout):
 
 class SpaceXWidget(RelativeLayout):
     """un cercle de rayon 700, centre à 500,-600"""
+    def set_mission(self):
+        for i in range(0, len(CHAMPS)):
+            self.phases.append(CHAMPS[i])
+        for i in range(0, len(VAL)):
+            self.angles.append(int(VAL[i]))
 
     def __init__(self, ctrl_tir, **kwargs):
         super().__init__(**kwargs)
@@ -225,16 +231,9 @@ class SpaceXWidget(RelativeLayout):
                 Line(circle=(500 + a, b - 600, 7))
             self.affiche_timer(self.phases[i], 13, 485 + a, b - 590)
 
-    def set_mission(self):
-        for i in range(0, len(CHAMPS)):
-            self.phases.append(CHAMPS[i])
-        for i in range(0, len(VAL)):
-            self.angles.append(int(VAL[i]))
-
     def update_mission(self):
         for i in range(0, len(VAL)):
             self.angles[i] = int(VAL[i])
-            print(str(VAL[i]))
 
     def update(self, dt):
         if self.ctrl_tir.launched:
@@ -256,6 +255,22 @@ class SpaceXWidget(RelativeLayout):
                 Color(1, 1, 1)
                 Line(circle=(500, -600, 700, -30, 30))
                 Line(circle=(500, -600, 700, -30, 0), width=2)
+        else:
+            self.update_mission()
+            self.canvas.clear()
+            self.affiche_timer("T+00:00:00", 26, 430, 30)
+            for i in range(0, len(self.phases)):
+                self.angles[i] += FREQ
+                a = 700 * cos(self.angles[i] / 180 * pi)
+                b = 700 * sin(self.angles[i] / 180 * pi)
+                with self.canvas:
+                    Color(1, 1, 1)
+                    Line(circle=(500 + a, b - 600, 7))
+                self.affiche_timer(self.phases[i], 13, 485 + a, b - 590)
+            with self.canvas:
+                Color(1, 1, 1)
+                Line(circle=(500, -600, 700, -30, 30))
+                Line(circle=(500, -600, 700, -30, 0), width=2)
 
     def affiche_timer(self, texte, size, a, b):
         mylabel = CoreLabel(text=texte, font_size=size,
@@ -273,8 +288,6 @@ class MainWidget(BoxLayout):
         box = BoxLayout(orientation="vertical")
         layout = GridLayout(cols=3)
         my_controle_tir = ControleTir()
-        # la ligne du dessus double la déclaration de VAL pour rien ; à dégager et modifier
-        #parameters = ParameterScreen()
         SpaceX = SpaceXWidget(my_controle_tir)
         layout.add_widget(my_controle_tir)
         layout.add_widget(Graphique(vitesse))
@@ -314,7 +327,6 @@ class ParameterScreen(GridLayout):
     def __init__(self, **kvargs):
         super().__init__(**kvargs)
         self.val = []
-        #self.champs = ["Launch", "Propulsion End", "Apogee", "Parachute Deployment", "Landing"]
         self.add_widget(Label(text="Profil de mission", color=(1, 0.5, 0, 1), size_hint=(None, None), width=170,
                               height=30))
         self.add_widget(Label(text="", size_hint=(None, None), width=150, height=30))
@@ -334,8 +346,6 @@ class GroundControlStationApp(App):
 
     def build(self):
         self.manager = MyScreenManager()
-        #sc1 = ParameterScreen(name="Parametres")
-        #self.manager.add_widget(sc1)
         Window.size = (1000, 800)
         return self.manager
 
