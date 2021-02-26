@@ -14,7 +14,7 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.relativelayout import RelativeLayout
 import serial
-from kivy.uix.screenmanager import ScreenManager
+from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.core.window import Window
 # from SpaceX_widget import SpaceXWidget, ControleTir
 
@@ -23,6 +23,8 @@ from kivy.core.window import Window
 from kivy.uix.textinput import TextInput
 
 FREQ = .1
+VAL = [90, 70, 60, 55, 40]
+CHAMPS = ["Launch", "Propulsion End", "Apogee", "Parachute Deployment", "Landing"]
 Config.set('graphics', 'width', '1000')
 Config.set('graphics', 'height', '800')
 
@@ -130,7 +132,7 @@ class Graphique(RelativeLayout):
         # Dessin du cadre
         with self.canvas:
             Color(1, 1, 1, 0.8)
-            Line(points=(0, self.H/2, self.L, self.H/2))
+            Line(points=(0, self.H / 2, self.L, self.H / 2))
             Color(1, 1, 1)
             Line(rectangle=(0, 0, self.L, self.H), width=2)
         self.remove_widget(self.label_titre)
@@ -138,19 +140,19 @@ class Graphique(RelativeLayout):
         self.chart_unit()
         # Trace la courbe
         """essayer d'implémenter un buffer circulaire"""
-        for i in range(0, self.max_graph - self.N-1):
+        for i in range(0, self.max_graph - self.N - 1):
             x1 = self.graphX[i]
-            y1 = self.graphY[i+self.N]
+            y1 = self.graphY[i + self.N]
             x2 = self.graphX[i + 1]
-            y2 = self.graphY[i+self.N + 1]
+            y2 = self.graphY[i + self.N + 1]
             with self.canvas:
                 Color(0, 1, 1)
                 Line(points=(x1, y1, x2, y2))
-        for i in range(self.max_graph - self.N-1, self.max_graph-1):
+        for i in range(self.max_graph - self.N - 1, self.max_graph - 1):
             x1 = self.graphX[i]
-            y1 = self.graphY[i-(self.max_graph-self.N)]
+            y1 = self.graphY[i - (self.max_graph - self.N)]
             x2 = self.graphX[i + 1]
-            y2 = self.graphY[i-(self.max_graph-self.N) + 1]
+            y2 = self.graphY[i - (self.max_graph - self.N) + 1]
             with self.canvas:
                 Color(0, 1, 1)
                 Line(points=(x1, y1, x2, y2))
@@ -161,7 +163,7 @@ class Graphique(RelativeLayout):
         # Mise à jour de de la valeur du capteur
         self.graphY[self.max_graph - 1] = self.capteur.data"""
         self.graphY[self.N] = self.capteur.data
-        if self.N < self.max_graph-1:
+        if self.N < self.max_graph - 1:
             self.N += 1
         else:
             self.N = 0
@@ -190,7 +192,7 @@ class ControleTir(GridLayout):
     def update_controle_tir(self, dt):
         self.heure = datetime.now().strftime('%H:%M:%S')
         if self.launch_time is not None:
-            self.date_since_launch = datetime.now()-self.launch_time
+            self.date_since_launch = datetime.now() - self.launch_time
             self.since_launch = str(datetime.now() - self.launch_time)
 
     def on_button_click(self):
@@ -201,12 +203,14 @@ class ControleTir(GridLayout):
 
 class SpaceXWidget(RelativeLayout):
     """un cercle de rayon 700, centre à 500,-600"""
-    def __init__(self, ctrl_tir, parameters, **kwargs):
+
+    def __init__(self, ctrl_tir, **kwargs):
         super().__init__(**kwargs)
+
         self.ctrl_tir = ctrl_tir
-        self.parameters = parameters
         self.angles = []
         self.phases = []
+        self.is_first = 0
 
         Clock.schedule_interval(self.update, FREQ)
         """Paramètres de la mission par une fenetre de parametres"""
@@ -222,26 +226,32 @@ class SpaceXWidget(RelativeLayout):
             self.affiche_timer(self.phases[i], 13, 485 + a, b - 590)
 
     def set_mission(self):
-        for i in range(0, len(self.parameters.champs)):
-            self.phases.append(self.parameters.champs[i])
-            print(self.phases[i])
-        for i in range(0, len(self.parameters.val)):
-            self.angles.append(int(self.parameters.val[i].text))
-            print(self.angles[i])
+        for i in range(0, len(CHAMPS)):
+            self.phases.append(CHAMPS[i])
+        for i in range(0, len(VAL)):
+            self.angles.append(int(VAL[i]))
+
+    def update_mission(self):
+        for i in range(0, len(VAL)):
+            self.angles[i] = int(VAL[i])
+            print(str(VAL[i]))
 
     def update(self, dt):
         if self.ctrl_tir.launched:
+            if self.is_first == 0:
+                self.update_mission()
+                self.is_first = 1
             self.canvas.clear()
             for i in range(0, len(self.phases)):
                 self.angles[i] += FREQ
-                a = 700*cos(self.angles[i]/180*pi)
-                b = 700*sin(self.angles[i]/180*pi)
+                a = 700 * cos(self.angles[i] / 180 * pi)
+                b = 700 * sin(self.angles[i] / 180 * pi)
                 with self.canvas:
                     Color(1, 1, 1)
-                    Line(circle=(500+a, b-600, 7))
+                    Line(circle=(500 + a, b - 600, 7))
                 self.affiche_timer(self.phases[i], 13, 485 + a, b - 590)
             """ compteur """
-            self.affiche_timer("T+"+str(self.ctrl_tir.date_since_launch), 26, 430, 30)
+            self.affiche_timer("T+" + str(self.ctrl_tir.date_since_launch), 26, 430, 30)
             with self.canvas:
                 Color(1, 1, 1)
                 Line(circle=(500, -600, 700, -30, 30))
@@ -263,8 +273,9 @@ class MainWidget(BoxLayout):
         box = BoxLayout(orientation="vertical")
         layout = GridLayout(cols=3)
         my_controle_tir = ControleTir()
-        parameters = ParameterScreen()
-        SpaceX = SpaceXWidget(my_controle_tir, parameters)
+        # la ligne du dessus double la déclaration de VAL pour rien ; à dégager et modifier
+        #parameters = ParameterScreen()
+        SpaceX = SpaceXWidget(my_controle_tir)
         layout.add_widget(my_controle_tir)
         layout.add_widget(Graphique(vitesse))
         layout.add_widget(Graphique(altitude))
@@ -303,22 +314,19 @@ class ParameterScreen(GridLayout):
     def __init__(self, **kvargs):
         super().__init__(**kvargs)
         self.val = []
-        self.champs = ["Launch", "Propulsion End", "Apogee", "Parachute Deployment", "Landing"]
+        #self.champs = ["Launch", "Propulsion End", "Apogee", "Parachute Deployment", "Landing"]
         self.add_widget(Label(text="Profil de mission", color=(1, 0.5, 0, 1), size_hint=(None, None), width=170,
                               height=30))
         self.add_widget(Label(text="", size_hint=(None, None), width=150, height=30))
-        for i in range (0, len(self.champs)):
-            self.add_widget(Label(text=self.champs[i], size_hint=(None, None), width=170, height=30))
-            self.val.append(TextInput(text=str(0), multiline=False, size_hint=(None, None), width=100, height=30))
+        for i in range(0, len(CHAMPS)):
+            self.add_widget(Label(text=CHAMPS[i], size_hint=(None, None), width=170, height=30))
+            self.val.append(TextInput(text=str(VAL[i]), multiline=False, size_hint=(None, None), width=100, height=30))
             self.add_widget(self.val[i])
-        self.val[0].text = str(90)
-        self.val[1].text = str(70)
-
 
     def parameter_validation(self):
-        print("ca marche")
-        for i in range(0, len(self.val)):
-            print(self.val[i].text)
+        for i in range(0, len(VAL)):
+            VAL[i] = self.val[i].text
+        print("Parameters changed")
 
 
 class GroundControlStationApp(App):
@@ -326,6 +334,8 @@ class GroundControlStationApp(App):
 
     def build(self):
         self.manager = MyScreenManager()
+        #sc1 = ParameterScreen(name="Parametres")
+        #self.manager.add_widget(sc1)
         Window.size = (1000, 800)
         return self.manager
 
