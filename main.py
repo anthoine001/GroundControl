@@ -26,6 +26,7 @@ from kivy.uix.textinput import TextInput
 FREQ = .1
 VAL = [90, 70, 60, 55, 40]
 CHAMPS = ["Launch", "Propulsion End", "Apogee", "Parachute Deployment", "Landing"]
+in_flight = False
 Config.set('graphics', 'width', '1000')
 Config.set('graphics', 'height', '800')
 
@@ -193,11 +194,14 @@ class ControleTir(GridLayout):
     def update_controle_tir(self, dt):
         self.heure = datetime.now().strftime('%H:%M:%S')
         if self.launch_time is not None:
-            self.date_since_launch = datetime.now() - self.launch_time
-            self.since_launch = (str(datetime.now() - self.launch_time))[:-4]
+            if in_flight:
+                self.date_since_launch = datetime.now() - self.launch_time
+                self.since_launch = (str(datetime.now() - self.launch_time))[:-4]
 
     def on_button_click(self):
         self.launch_time = datetime.now()
+        global in_flight
+        in_flight = True
         print("La fusée est lancée à :" + self.launch_time.strftime('%H:%M:%S.%f'))
         self.launched = True
 
@@ -229,6 +233,10 @@ class SpaceXWidget(RelativeLayout):
                 Color(1, 1, 1)
                 Line(circle=(500 + a, b - 600, 7))
             self.affiche_timer(self.phases[i], 13, 485 + a, b - 590)
+        with self.canvas:
+            Color(1, 1, 1)
+            Line(circle=(500, -600, 700, -30, 30))
+            Line(circle=(500, -600, 700, -30, 0), width=2)
 
     def update_mission(self):
         for i in range(0, len(VAL)):
@@ -236,10 +244,7 @@ class SpaceXWidget(RelativeLayout):
         #GroundControlStationApp().manager.pop()
 
     def update(self, dt):
-        if self.ctrl_tir.launched:
-            '''if self.is_first == 0:
-                self.update_mission()
-                self.is_first = 1'''
+        if self.ctrl_tir.launched and self.angles[len(self.angles)-1] <= 90:
             self.canvas.clear()
             for i in range(0, len(self.phases)):
                 self.angles[i] += FREQ
@@ -255,22 +260,13 @@ class SpaceXWidget(RelativeLayout):
                 Color(1, 1, 1)
                 Line(circle=(500, -600, 700, -30, 30))
                 Line(circle=(500, -600, 700, -30, 0), width=2)
+        elif self.angles[len(self.angles)-1] > 90:
+            self.ctrl_tir.launched = False
+            global in_flight
+            in_flight = False
         else:
             self.update_mission()
-            self.canvas.clear()
-            self.affiche_timer("T+00:00:00", 26, 430, 30)
-            for i in range(0, len(self.phases)):
-                self.angles[i] += FREQ
-                a = 700 * cos(self.angles[i] / 180 * pi)
-                b = 700 * sin(self.angles[i] / 180 * pi)
-                with self.canvas:
-                    Color(1, 1, 1)
-                    Line(circle=(500 + a, b - 600, 7))
-                self.affiche_timer(self.phases[i], 13, 485 + a, b - 590)
-            with self.canvas:
-                Color(1, 1, 1)
-                Line(circle=(500, -600, 700, -30, 30))
-                Line(circle=(500, -600, 700, -30, 0), width=2)
+
 
     def affiche_timer(self, texte, size, a, b):
         mylabel = CoreLabel(text=texte, font_size=size,
