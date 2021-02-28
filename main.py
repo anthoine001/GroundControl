@@ -182,7 +182,7 @@ class ControleTir(GridLayout):
     """Affiche un pavé avec heure, temps depuis le lancement, etc."""
     heure = StringProperty("Heure")
     launched = BooleanProperty(False)
-    since_launch = StringProperty("0.000 s")
+    since_launch = StringProperty("0.00 s")
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -194,7 +194,7 @@ class ControleTir(GridLayout):
         self.heure = datetime.now().strftime('%H:%M:%S')
         if self.launch_time is not None:
             self.date_since_launch = datetime.now() - self.launch_time
-            self.since_launch = str(datetime.now() - self.launch_time)
+            self.since_launch = (str(datetime.now() - self.launch_time))[:-4]
 
     def on_button_click(self):
         self.launch_time = datetime.now()
@@ -216,7 +216,6 @@ class SpaceXWidget(RelativeLayout):
         self.ctrl_tir = ctrl_tir
         self.angles = []
         self.phases = []
-        self.is_first = 0
 
         Clock.schedule_interval(self.update, FREQ)
         """Paramètres de la mission par une fenetre de parametres"""
@@ -234,12 +233,13 @@ class SpaceXWidget(RelativeLayout):
     def update_mission(self):
         for i in range(0, len(VAL)):
             self.angles[i] = int(VAL[i])
+        #GroundControlStationApp().manager.pop()
 
     def update(self, dt):
         if self.ctrl_tir.launched:
-            if self.is_first == 0:
+            '''if self.is_first == 0:
                 self.update_mission()
-                self.is_first = 1
+                self.is_first = 1'''
             self.canvas.clear()
             for i in range(0, len(self.phases)):
                 self.angles[i] += FREQ
@@ -250,7 +250,7 @@ class SpaceXWidget(RelativeLayout):
                     Line(circle=(500 + a, b - 600, 7))
                 self.affiche_timer(self.phases[i], 13, 485 + a, b - 590)
             """ compteur """
-            self.affiche_timer("T+" + str(self.ctrl_tir.date_since_launch), 26, 430, 30)
+            self.affiche_timer("T+" + str(self.ctrl_tir.date_since_launch)[:-4], 26, 430, 30)
             with self.canvas:
                 Color(1, 1, 1)
                 Line(circle=(500, -600, 700, -30, 30))
