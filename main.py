@@ -253,7 +253,11 @@ class SpaceXWidget(RelativeLayout):
                 with self.canvas:
                     Color(1, 1, 1)
                     Line(circle=(500 + a, b - 600, 7))
-                self.affiche_timer(self.phases[i], 13, 485 + a, b - 590)
+                # Ecriture de la phase
+                if a>0:
+                    self.affiche_timer(self.phases[i], 13, 485 + a, b - 590)
+                else:
+                    self.affiche_timer(self.phases[i], 13, 485 + a, b - 620)
             """ compteur """
             self.affiche_timer("T+" + str(self.ctrl_tir.date_since_launch)[:-4], 26, 430, 30)
             with self.canvas:
