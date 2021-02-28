@@ -230,10 +230,12 @@ class SpaceXWidget(RelativeLayout):
             a = 700 * cos(self.angles[i] / 180 * pi)
             b = 700 * sin(self.angles[i] / 180 * pi)
             with self.canvas:
+                # Dessin des petits cercles
                 Color(1, 1, 1)
                 Line(circle=(500 + a, b - 600, 7))
             self.affiche_timer(self.phases[i], 13, 485 + a, b - 590)
         with self.canvas:
+            # Dessin des grands cercles
             Color(1, 1, 1)
             Line(circle=(500, -600, 700, -30, 30))
             Line(circle=(500, -600, 700, -30, 0), width=2)
@@ -241,7 +243,6 @@ class SpaceXWidget(RelativeLayout):
     def update_mission(self):
         for i in range(0, len(VAL)):
             self.angles[i] = int(VAL[i])
-        #GroundControlStationApp().manager.pop()
 
     def update(self, dt):
         if self.ctrl_tir.launched and self.angles[len(self.angles)-1] <= 90:
@@ -285,7 +286,9 @@ class SpaceXWidget(RelativeLayout):
 class MainWidget(BoxLayout):
     def __init__(self, **kvargs):
         super().__init__(**kvargs)
+        main = BoxLayout(orientation="horizontal")
         box = BoxLayout(orientation="vertical")
+        cadrants = BoxLayout(size_hint=(None, None), width=300)
         layout = GridLayout(cols=3)
         my_controle_tir = ControleTir()
         SpaceX = SpaceXWidget(my_controle_tir)
@@ -299,7 +302,9 @@ class MainWidget(BoxLayout):
         layout.add_widget(Graphique(reception))
         box.add_widget(layout)
         box.add_widget(SpaceX)
-        self.add_widget(box)
+        main.add_widget(cadrants)
+        main.add_widget(box)
+        self.add_widget(main)
 
 
 class NavigationScreenManager(ScreenManager):
@@ -346,7 +351,7 @@ class GroundControlStationApp(App):
 
     def build(self):
         self.manager = MyScreenManager()
-        Window.size = (1000, 800)
+        Window.size = (1300, 800)
         return self.manager
 
 
