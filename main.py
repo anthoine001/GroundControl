@@ -7,7 +7,7 @@ from kivy.core.text import Label as CoreLabel
 from kivy.config import Config
 from kivy.app import App
 from kivy.graphics.context_instructions import Color
-from kivy.graphics.vertex_instructions import Line, Rectangle
+from kivy.graphics.vertex_instructions import Line, Rectangle, Ellipse
 from kivy.properties import Clock, StringProperty, BooleanProperty, ObjectProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
@@ -35,22 +35,35 @@ class Recepteur:
     """Capteur alimenté par la liaison série"""
 
     def __init__(self, nom=""):
-        try:
-            self.ser = serial.Serial('/dev/cu.usbmodem1411', 9600)
-        except:
-            print("no reception")
         self.nom = nom
         self.data = .0
+        self.is_connected = False
+        try:
+            self.ser = serial.Serial('/dev/cu.usbmodem1411', 9600)
+            self.is_connected = True
+        except:
+            print("no reception")
+            self.is_connected = False
+
         Clock.schedule_interval(self.recepteur_update, FREQ)
 
     def recepteur_update(self, dt):
-        try:
-            value = float(self.ser.readline().strip())
-            print(value / 1000)
-            if value / 1000 < 10:
-                self.data = value / 1000
-        except:
-            self.data = 0
+        if self.is_connected:
+            try:
+                value = float(self.ser.readline().strip())
+                print(value / 100)
+                if value / 100 < 10:
+                    self.data = value
+            except:
+                print("Pas de réception de données")
+                self.is_connected = False
+        else:
+            try:
+                #self.ser.close()
+                self.ser = serial.Serial('/dev/cu.usbmodem1411', 9600)
+                self.is_connected = True
+            except:
+                self.is_connected = False
 
 
 class CapteurTest:
@@ -185,11 +198,15 @@ class ControleTir(GridLayout):
     launched = BooleanProperty(False)
     since_launch = StringProperty("0.00 s")
 
-    def __init__(self, **kwargs):
+    def __init__(self, recepteur, **kwargs):
         super().__init__(**kwargs)
         Clock.schedule_interval(self.update_controle_tir, .1)
         self.launch_time = None
         self.date_since_launch = None
+        self.recepteur = recepteur
+        self.feu_reception = RelativeLayout()
+        self.feu_reception.add_widget(Label(text="Reception:"))
+        self.add_widget(self.feu_reception)
 
     def update_controle_tir(self, dt):
         self.heure = datetime.now().strftime('%H:%M:%S')
@@ -197,6 +214,7 @@ class ControleTir(GridLayout):
             if in_flight:
                 self.date_since_launch = datetime.now() - self.launch_time
                 self.since_launch = (str(datetime.now() - self.launch_time))[:-4]
+        self.draw_feu()
 
     def on_button_click(self):
         self.launch_time = datetime.now()
@@ -204,6 +222,17 @@ class ControleTir(GridLayout):
         in_flight = True
         print("La fusée est lancée à :" + self.launch_time.strftime('%H:%M:%S.%f'))
         self.launched = True
+
+    def draw_feu(self):
+        if self.recepteur.is_connected:
+            with self.feu_reception.canvas:
+                Color(0, 1, 0)
+        else:
+            with self.feu_reception.canvas:
+                Color(1, 0, 0)
+        with self.feu_reception.canvas:
+            Ellipse(pos=(50, 5), size=(20, 20))
+
 
 
 class Compteur(RelativeLayout):
@@ -324,9 +353,9 @@ class MainWidget(BoxLayout):
         box = BoxLayout(orientation="vertical")
         cadrants = BoxLayout(orientation="vertical", size_hint=(None, 1.0), width=300)
         layout = GridLayout(cols=3)
-        my_controle_tir = ControleTir()
+        my_controle_tir = ControleTir(reception)
         SpaceX = SpaceXWidget(my_controle_tir)
-        layout.add_widget(my_controle_tir)
+        cadrants.add_widget(my_controle_tir)
         layout.add_widget(Graphique(vitesse))
         layout.add_widget(Graphique(altitude))
         layout.add_widget(Graphique(gyro_x))

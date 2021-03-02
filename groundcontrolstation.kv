@@ -40,6 +40,9 @@
 
 <ControleTir>:
     cols: 2
+    size_hint: 1, None
+    height: 150
+
     BackgroundLabel:
         text: root.heure
         color: 0,0,0
@@ -60,8 +63,12 @@
         text: "Depuis le decollage:"
     Label:
         text: root.since_launch
+
     Button:
         text: "Parametres"
+        size_hint: 1, None
+        height: 30
+        pos_hint: {"y" : 0.5}
         on_press: app.manager.push("Parametres")
 
 
