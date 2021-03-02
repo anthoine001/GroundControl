@@ -206,6 +206,46 @@ class ControleTir(GridLayout):
         self.launched = True
 
 
+class Compteur(RelativeLayout):
+    def __init__(self, capteur, unit, max, **kvargs):
+        super().__init__(**kvargs)
+        self.capteur = capteur
+        self.unit = unit
+        self.max = max
+        Clock.schedule_interval(self.update_compteur, .1)
+
+    def update_compteur(self, dt):
+        # conversion de la valeur du capteur dans l'échelle du widget
+        # plage de 225°, de -180° à +45°
+        # sur une plage de 0 à self.max
+        data_tr = int(self.capteur.data/self.max*225-180)
+
+        self.canvas.clear()
+        with self.canvas:
+            Color(1, 1, 1)
+            Line(rectangle=(15, 15, 270, 270))
+            Color(1, 1, 1, .5)
+            Line(circle=(150, 140, 100, -180, 45), width=7)
+            Color(1, 0, 0, .5)
+            Line(circle=(150, 140, 100, 45, 75), width=7)
+            Color(1, 1, 1)
+            Line(circle=(150, 140, 100, -180, data_tr), width=7)
+        self.affiche_timer(self.unit, 40, 200, 45)
+        #self.affiche_timer("00.0", 50, 110, 110)
+        self.affiche_timer(self.capteur.nom, 20,20, 255)
+        self.affiche_timer(str(int(self.capteur.data)), 50, 110, 110)
+
+
+    def affiche_timer(self, texte, size, a, b):
+        mylabel = CoreLabel(text=texte, font_size=size,
+                            color=(1, 1, 1, 1))
+        mylabel.refresh()
+        texture = mylabel.texture
+        texture_size = list(texture.size)
+        with self.canvas:
+            Rectangle(pos=(a, b), texture=texture, size=texture_size)
+
+
 class SpaceXWidget(RelativeLayout):
     """un cercle de rayon 700, centre à 500,-600"""
     def set_mission(self):
@@ -213,6 +253,23 @@ class SpaceXWidget(RelativeLayout):
             self.phases.append(CHAMPS[i])
         for i in range(0, len(VAL)):
             self.angles.append(int(VAL[i]))
+
+    def draw_X(self):
+        self.canvas.clear()
+        for i in range(0, len(self.phases)):
+            a = 700 * cos(self.angles[i] / 180 * pi)
+            b = 700 * sin(self.angles[i] / 180 * pi)
+            with self.canvas:
+                Color(1, 1, 1)
+                Line(circle=(500 + a, b - 600, 7))
+            if a>0:
+                self.affiche_timer(self.phases[i], 13, 485 + a, b - 590)
+            else:
+                self.affiche_timer(self.phases[i], 13, 485 + a, b - 620)
+        with self.canvas:
+            Color(1, 1, 1)
+            Line(circle=(500, -600, 700, -30, 30))
+            Line(circle=(500, -600, 700, -30, 0), width=2)
 
     def __init__(self, ctrl_tir, **kwargs):
         super().__init__(**kwargs)
@@ -224,53 +281,30 @@ class SpaceXWidget(RelativeLayout):
         Clock.schedule_interval(self.update, FREQ)
         """Paramètres de la mission par une fenetre de parametres"""
         self.set_mission()
-
+        self.draw_X()
         self.affiche_timer("T+00:00:00", 26, 430, 30)
-        for i in range(0, len(self.phases)):
-            a = 700 * cos(self.angles[i] / 180 * pi)
-            b = 700 * sin(self.angles[i] / 180 * pi)
-            with self.canvas:
-                # Dessin des petits cercles
-                Color(1, 1, 1)
-                Line(circle=(500 + a, b - 600, 7))
-            self.affiche_timer(self.phases[i], 13, 485 + a, b - 590)
-        with self.canvas:
-            # Dessin des grands cercles
-            Color(1, 1, 1)
-            Line(circle=(500, -600, 700, -30, 30))
-            Line(circle=(500, -600, 700, -30, 0), width=2)
+
 
     def update_mission(self):
         for i in range(0, len(VAL)):
             self.angles[i] = int(VAL[i])
+        self.draw_X()
 
     def update(self, dt):
         if self.ctrl_tir.launched and self.angles[len(self.angles)-1] <= 90:
-            self.canvas.clear()
             for i in range(0, len(self.phases)):
                 self.angles[i] += FREQ
-                a = 700 * cos(self.angles[i] / 180 * pi)
-                b = 700 * sin(self.angles[i] / 180 * pi)
-                with self.canvas:
-                    Color(1, 1, 1)
-                    Line(circle=(500 + a, b - 600, 7))
-                # Ecriture de la phase
-                if a>0:
-                    self.affiche_timer(self.phases[i], 13, 485 + a, b - 590)
-                else:
-                    self.affiche_timer(self.phases[i], 13, 485 + a, b - 620)
+            self.draw_X()
             """ compteur """
             self.affiche_timer("T+" + str(self.ctrl_tir.date_since_launch)[:-4], 26, 430, 30)
-            with self.canvas:
-                Color(1, 1, 1)
-                Line(circle=(500, -600, 700, -30, 30))
-                Line(circle=(500, -600, 700, -30, 0), width=2)
+
         elif self.angles[len(self.angles)-1] > 90:
             self.ctrl_tir.launched = False
             global in_flight
             in_flight = False
         else:
             self.update_mission()
+            self.affiche_timer("T+00:00:00", 26, 430, 30)
 
 
     def affiche_timer(self, texte, size, a, b):
@@ -288,7 +322,7 @@ class MainWidget(BoxLayout):
         super().__init__(**kvargs)
         main = BoxLayout(orientation="horizontal")
         box = BoxLayout(orientation="vertical")
-        cadrants = BoxLayout(size_hint=(None, None), width=300)
+        cadrants = BoxLayout(orientation="vertical", size_hint=(None, 1.0), width=300)
         layout = GridLayout(cols=3)
         my_controle_tir = ControleTir()
         SpaceX = SpaceXWidget(my_controle_tir)
@@ -302,6 +336,9 @@ class MainWidget(BoxLayout):
         layout.add_widget(Graphique(reception))
         box.add_widget(layout)
         box.add_widget(SpaceX)
+        cadrants.add_widget(Compteur(vitesse, "m/s", 100))
+        cadrants.add_widget(Compteur(altitude, "m", 300))
+        #cadrants.add_widget(Compteur(vitesse))
         main.add_widget(cadrants)
         main.add_widget(box)
         self.add_widget(main)
@@ -337,12 +374,12 @@ class ParameterScreen(GridLayout):
         self.add_widget(Label(text="", size_hint=(None, None), width=150, height=30))
         for i in range(0, len(CHAMPS)):
             self.add_widget(Label(text=CHAMPS[i], size_hint=(None, None), width=170, height=30))
-            self.val.append(TextInput(text=str(VAL[i]), multiline=False, size_hint=(None, None), width=100, height=30))
+            self.val.append(TextInput(text=str(90-VAL[i]), multiline=False, size_hint=(None, None), width=100, height=30))
             self.add_widget(self.val[i])
 
     def parameter_validation(self):
         for i in range(0, len(VAL)):
-            VAL[i] = self.val[i].text
+            VAL[i] = 90-int(self.val[i].text)
         print("Parameters changed")
 
 
